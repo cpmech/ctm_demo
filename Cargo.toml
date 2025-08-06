@@ -8,11 +8,7 @@ homepage = "https://github.com/cpmech/ctm_demo"
 repository = "https://github.com/cpmech/ctm_demo"
 readme = "README.md"
 categories = ["mathematics", "science", "simulation"]
-keywords = [
-  "computational plasticity",
-  "consistent tangent modulus",
-  "finite element method",
-]
+keywords = ["plasticity", "finite element method"]
 
 [dependencies]
 russell_lab = { version = "1.10", features = ["intel_mkl"] }
