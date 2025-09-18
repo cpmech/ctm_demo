@@ -3,27 +3,37 @@ use crate::{Dahlquist, HardeningSoftening, ModelTrait, ModelType};
 use russell_lab::Vector;
 use russell_ode::{Method, OdeSolver, Params, System};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 const N_ITERATIONS_MAX: usize = 20;
 const BE_TOLERANCE: f64 = 1e-8;
 const DELTA: f64 = 1e-5;
 
+pub struct ArgsForODE {
+    model: Arc<dyn ModelTrait>,
+    x0: f64,
+    ddx: f64,
+}
+
 /// Represents a stress-strain model with x being strain and y being stress
 pub struct Model<'a> {
-    actual: Box<dyn ModelTrait>,
-    ode_solver: OdeSolver<'a, Box<dyn ModelTrait>>,
+    actual: Arc<dyn ModelTrait>,
+    ode_solver: OdeSolver<'a, ArgsForODE>,
 }
 
 impl<'a> Model<'a> {
     /// Allocates a new instance
     pub fn new(model_type: ModelType, params: HashMap<&str, f64>, ode_method: Method) -> Result<Self, StrError> {
-        let actual: Box<dyn ModelTrait> = match model_type {
-            ModelType::Dahlquist => Box::new(Dahlquist::new(params)?),
-            ModelType::HardeningSoftening => Box::new(HardeningSoftening::new(params)?),
+        let actual: Arc<dyn ModelTrait> = match model_type {
+            ModelType::Dahlquist => Arc::new(Dahlquist::new(params)?),
+            ModelType::HardeningSoftening => Arc::new(HardeningSoftening::new(params)?),
         };
         let ode_params = Params::new(ode_method);
-        let ode_system = System::new(1, |f, x, y, args: &mut Box<dyn ModelTrait>| {
-            f[0] = args.calc_f(x, y[0]);
+        let ode_system = System::new(1, |f, t, y, args: &mut ArgsForODE| {
+            // normalize: x(t) = x0 + t * Δx  thus  dx/dt = Δx
+            // solve: dy/dt = dy/dx * dx/dt = f(x,y) * Δx
+            let x = args.x0 + t * args.ddx;
+            f[0] = args.model.calc_f(x, y[0]) * args.ddx;
             Ok(())
         });
         let ode_solver = OdeSolver::new(ode_params, ode_system)?;
@@ -61,12 +71,15 @@ impl<'a> Model<'a> {
 
     /// Performs an update using the ODE solver
     pub fn ode_update(&mut self, x: &mut f64, y: &mut f64, ddx: f64) -> Result<(), StrError> {
-        let x0 = *x;
-        let x1 = x0 + ddx;
-        let mut y0 = Vector::from(&[*y]);
-        self.ode_solver.solve(&mut y0, x0, x1, None, &mut self.actual)?;
-        *x = x1;
-        *y = y0[0];
+        let mut yy = Vector::from(&[*y]);
+        let mut args = ArgsForODE {
+            model: self.actual.clone(),
+            x0: *x,
+            ddx,
+        };
+        self.ode_solver.solve(&mut yy, 0.0, 1.0, None, &mut args)?;
+        *x = args.x0 + ddx;
+        *y = yy[0];
         Ok(())
     }
 
