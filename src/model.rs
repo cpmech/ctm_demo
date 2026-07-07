@@ -77,7 +77,7 @@ impl<'a> Model<'a> {
             x0: *x,
             ddx,
         };
-        self.ode_solver.solve(&mut yy, 0.0, 1.0, None, &mut args)?;
+        self.ode_solver.solve(&mut yy, 0.0, 1.0, None, &mut args, None)?;
         *x = args.x0 + ddx;
         *y = yy[0];
         Ok(())
