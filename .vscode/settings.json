@@ -1,6 +1,3 @@
   {
-    "rust-analyzer.cargo.features": [
-      "intel_mkl",
-      "local_suitesparse"
-    ]
+    "rust-analyzer.cargo.features": "all"
   }

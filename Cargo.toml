@@ -11,12 +11,12 @@ categories = ["mathematics", "science", "simulation"]
 keywords = ["plasticity", "FEM"]
 
 [dependencies]
-russell_lab = "1.10"
-russell_ode = "1.10"
+russell_lab = "2.7"
+russell_ode = "2.7"
 
 [features]
 intel_mkl = ["russell_lab/intel_mkl", "russell_ode/intel_mkl"]
-local_suitesparse = ["russell_ode/local_suitesparse"]
+local_sparse = ["russell_ode/local_sparse"]
 
 [dev-dependencies]
-plotpy = "1.13"
+plotpy = "1.23"
