@@ -1,6 +1,6 @@
 [package]
 name = "ctm_demo"
-version = "0.2.0"
+version = "1.0.0"
 edition = "2024"
 license = "MIT"
 description = "Demonstration of the Consistent Tangent Modulus in Computational Plasticity"
@@ -11,8 +11,8 @@ categories = ["mathematics", "science", "simulation"]
 keywords = ["plasticity", "FEM"]
 
 [dependencies]
-russell_lab = "2.7"
-russell_ode = "2.7"
+russell_lab = "2.8"
+russell_ode = "2.8"
 
 [features]
 intel_mkl = ["russell_lab/intel_mkl", "russell_ode/intel_mkl"]
